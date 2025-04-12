@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.special as sp
 from scipy import stats
-from numba import njit
+from numba import jit,njit
 
 savefigs = False
 
@@ -97,7 +97,7 @@ plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 plt.ylabel("Average Energy per Spin")
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Energy2.jpg')
+    plt.savefig(f'Figures/Poster/2D/2D-Energy.jpg')
     plt.close()
 else:
     plt.show()
@@ -122,7 +122,7 @@ plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Cv2.jpg')
+    plt.savefig(f'Figures/Poster/2D/2D-Cv.jpg')
     plt.close()
 else:
     plt.show()
@@ -146,7 +146,7 @@ plt.ylabel("Magnetization per Spin")
 plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Mag2.jpg')
+    plt.savefig(f'Figures/Poster/2D/2D-Mag.jpg')
     plt.close()
 else:
     plt.show()

@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
-from numba import njit
-import time
+from numba import jit,njit
 
 savefigs = False
 
@@ -82,7 +81,7 @@ plt.xlabel("Temperature (J/k)")
 plt.ylabel("Average Energy per Spin")
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/1D/1D-Energy2.jpg')
+    plt.savefig(f'Figures/Poster/1D/1D-Energy.jpg')
     plt.close()
 else:
     plt.show()
@@ -100,7 +99,7 @@ plt.xlabel("Temperature (J/k)")
 plt.ylabel("Specific Heat per Spin")
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/1D/1D-Cv2.jpg')
+    plt.savefig(f'Figures/Poster/1D/1D-Cv.jpg')
     plt.close()
 else:
     plt.show()
@@ -118,7 +117,7 @@ plt.xlabel("Temperature (J/k)")
 plt.ylabel("Magnetization per Spin")
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/1D/1D-Mag2.jpg')
+    plt.savefig(f'Figures/Poster/1D/1D-Mag.jpg')
     plt.close()
 else:
     plt.show()

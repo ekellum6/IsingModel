@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.special as sp
 from scipy import stats
-from numba import njit
+from numba import jit,njit
 
 savefigs = False
 
-L = 50 #number of lattice points in each dimension
+L = 100 #number of lattice points in each dimension
 size = L*L*L #total number of lattice points
 J = 1.0  #Coupling Coefficient
 N = 5000 #number of monte-carlo steps for data collection
@@ -90,7 +90,7 @@ plt.ylabel("Average Energy per Spin")
 plt.xticks([1,2,3,4,Tc,5,6,7,8],[1,2,3,4,'Tc',5,6,7,8])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 if savefigs:
-    plt.savefig(f'Figures/Poster/3D/3D-Energy2.jpg')
+    plt.savefig(f'Figures/Poster/3D/3D-Energy.jpg')
     plt.close()
 else:
     plt.show()
@@ -105,7 +105,7 @@ plt.ylabel("Specific Heat per Spin")
 plt.xticks([1,2,3,4,Tc,5,6,7,8],[1,2,3,4,'Tc',5,6,7,8])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 if savefigs:
-    plt.savefig(f'Figures/Poster/3D/3D-Cv2.jpg')
+    plt.savefig(f'Figures/Poster/3D/3D-Cv.jpg')
     plt.close()
 else:
     plt.show()
@@ -118,7 +118,7 @@ plt.ylabel("Magnetization per Spin")
 plt.xticks([1,2,3,4,Tc,5,6,7,8],[1,2,3,4,'Tc',5,6,7,8])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 if savefigs:
-    plt.savefig(f'Figures/Poster/3D/3D-Mag2.jpg')
+    plt.savefig(f'Figures/Poster/3D/3D-Mag.jpg')
     plt.close()
 else:
     plt.show()
