@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
-from numba import jit
+from numba import njit
 import time
+
+savefigs = False
 
 L = 100 #number of lattice points in each dimension
 size = L #total number of lattice points
@@ -10,7 +12,7 @@ J = 1.0  #Coupling Coefficient
 N = 5000 #number of monte-carlo steps for data collection
 Neq = 5000 #number of MCS for equilibration
 Nt = 100 #number of temperatures sampled
-Temps = np.logspace(-2,1.5,Nt)
+Temps = np.linspace(0.1,10,Nt)
 
 #Data Collection
 M_t = np.zeros(N) #magnetization
@@ -22,7 +24,7 @@ E_T = np.zeros(Nt)
 Cv_T = np.zeros(Nt)
 
 
-@jit
+@njit
 def MCS(state,expvals,L=L,size=size,J=J):
     randx = np.random.randint(0,L,size)
     for n_in in range(size):
@@ -62,56 +64,83 @@ for T in Temps:
         MCS(state,expvals)
     M_T[Tcounter] = stats.mode(np.abs(M_t),axis=None)[0]
     E_T[Tcounter] = np.sum(E_t)/(N)
-    Cv_T[Tcounter] = ((np.sum(E2_t)/N)-(E_T[Tcounter]**2))/(T**2)
+    Cv_T[Tcounter] = size*((np.sum(E2_t)/N)-(E_T[Tcounter]**2))/(T**2)
     state_f = state.copy()
     s_T.append((state_i,state_f))
     Tcounter += 1
 
+#Plot <E/N>(T)
 
 #Analytical Solution:
 exactE_T = np.array([-J*np.tanh(J/T) for T in Temps])
-#Plot <E/N>(T)
-plt.plot(Temps,E_T, label='Numerical Result')
-plt.plot(Temps, exactE_T, label='Analytical Result')
-plt.title("Analytical vs. Numerical Solution of the 1-D Ising Model")
-plt.xscale('log')
-plt.xlabel("Temperature")
-plt.ylabel("<E/N>")
+
+plt.plot(Temps,E_T,'.', label='Numerical Result')
+plt.plot(Temps, exactE_T,'--', label='Analytical Result')
+plt.title("Average Energy for 1-D Ising Model")
+#plt.xscale('log')
+plt.xlabel("Temperature (J/k)")
+plt.ylabel("Average Energy per Spin")
 plt.legend()
-#plt.savefig(f'Figures/1D/1D-EnergyComparison.jpg')
-plt.show()
+if savefigs:
+    plt.savefig(f'Figures/Poster/1D/1D-Energy2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot Cv(T)/N
-plt.plot(Temps,Cv_T, label='Numerical Result')
-#plt.plot(Temps, exactCv_T, label='Analytical Result')
-plt.title("Cv(T) for 1-D Ising Model")
-plt.xscale('log')
-plt.xlabel("Temperature")
-plt.ylabel("Cv/N")
-#plt.legend()
-#plt.savefig(f'Figures/1D/1D-EnergyComparison.jpg')
-plt.show()
+
+#Analytical Solution:
+exactCv_T = np.array([(J/T)**2 * (1 / np.cosh(J/T)**2) for T in Temps])
+
+plt.plot(Temps,Cv_T,'.', label='Numerical Result')
+plt.plot(Temps, exactCv_T,'--', label='Analytical Result')
+plt.title("Specific Heat for 1-D Ising Model")
+#plt.xscale('log')
+plt.xlabel("Temperature (J/k)")
+plt.ylabel("Specific Heat per Spin")
+plt.legend()
+if savefigs:
+    plt.savefig(f'Figures/Poster/1D/1D-Cv2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot <M>(T)
-plt.plot(Temps,M_T)
+
+#Analytical Solution:
+exactM_T = np.zeros(Nt)
+
+plt.plot(Temps,M_T,'.', label='Numerical Result')
+plt.plot(Temps,exactM_T,'--', label='Analytical Result')
+plt.title("Magnetization for 1-D Ising Model")
 #plt.xscale('log')
-plt.show()
+plt.xlabel("Temperature (J/k)")
+plt.ylabel("Magnetization per Spin")
+plt.legend()
+if savefigs:
+    plt.savefig(f'Figures/Poster/1D/1D-Mag2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot Spin Configurations
 
 for i_T in range(Nt):
     f,ax = plt.subplots(2,1)
-    ax[0].imshow(np.array([s_T[i_T][0] for i in range(5)]),cmap='gray')
+    ax[0].imshow(np.array([s_T[i_T][0] for i in range(L//10)]),cmap='gray')
     ax[0].set_xticks([]);
     ax[0].set_yticks([]);
     ax[0].xaxis.set_label_position('bottom')
     ax[0].set_xlabel('Initial State',fontsize=16)
-    ax[1].imshow(np.array([s_T[i_T][1] for i in range(5)]),cmap='gray')
+    ax[1].imshow(np.array([s_T[i_T][1] for i in range(L//10)]),cmap='gray')
     ax[1].set_xticks([]);
     ax[1].set_yticks([]);   
     ax[1].xaxis.set_label_position('bottom')
     ax[1].set_xlabel('Final State',fontsize=16)
-    f.suptitle(f'T = {Temps[i_T]:.4f}',y=.85,fontsize=16)
+    f.suptitle(f'T = {Temps[i_T]:.2f}',y=.85,fontsize=16)
     plt.tight_layout()
-    #plt.savefig(f'Figures/1D/1D-spinconfigplots/1Dconfig{i_T+1}.jpg')
-    plt.show()
+    if savefigs:
+        plt.savefig(f'Figures/Poster/1D/1D-spinconfigs/1Dconfig{i_T+1}.jpg')
+        plt.close()
+    else:
+        plt.show()

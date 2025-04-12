@@ -2,15 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.special as sp
 from scipy import stats
-from numba import jit
+from numba import njit
+
+savefigs = False
 
 L = 100 #number of lattice points in each dimension
 size = L*L #total number of lattice points
 J = 1.0  #Coupling Coefficient
-N = 1000 #number of monte-carlo steps for data collection
-Neq = 1000 #number of MCS for equilibration
+N = 5000 #number of monte-carlo steps for data collection
+Neq = 5000 #number of MCS for equilibration
 Nt = 100 #number of temperatures sampled
-Temps = np.linspace(0.1,10,Nt)
+Temps = np.linspace(1,5.95,Nt)
+
+Tc = 2.269185 #Known Value (https://theory.tifr.res.in/~tridib/ReferenceMaterial/PlischkeBergersen_Sec.6.1.pdf)
 
 #Data Collection
 M_t = np.zeros(N) #magnetization
@@ -22,7 +26,7 @@ E_T = np.zeros(Nt)
 Cv_T = np.zeros(Nt)
 
 
-@jit
+@njit
 def MCS(state,expvals,L=L,size=size,J=J):
     randxy = np.random.randint(0,L,(size,2))
     for n_in in range(size):
@@ -67,12 +71,14 @@ for T in Temps:
         #For each MCS, attempt flipping one spin for every lattice point
         MCS(state,expvals)
     M_T[Tcounter] = stats.mode(np.abs(M_t),axis=None)[0]
-    E_T[Tcounter] = np.sum(E_t)/(N)
-    Cv_T[Tcounter] = ((np.sum(E2_t)/N)-(E_T[Tcounter]**2))/(T**2)
+    #M_T[Tcounter] = np.mean(np.abs(M_t))
+    E_T[Tcounter] = np.mean(E_t)
+    Cv_T[Tcounter] = size*((np.sum(E2_t)/N)-(E_T[Tcounter]**2))/(T**2)
     state_f = state.copy()
     s_T.append((state_i,state_f))
     Tcounter += 1
 
+#Plot <E/N>(T)
 
 #Analytical Solution:
 def analyticalE(T):
@@ -80,32 +86,70 @@ def analyticalE(T):
     K = sp.ellipk(k**2)
     return (-J/np.tanh(2*J/T))*(1+(2/np.pi)*(-1+2*(np.tanh(2*J/T))**2)*K)
 exactE_T = np.array([analyticalE(T) for T in Temps])
-#Plot <E/N>(T)
-plt.plot(Temps,E_T, label='Numerical Result')
-plt.plot(Temps, exactE_T, label='Analytical Result')
-plt.title("Analytical vs. Numerical Solution of the 2-D Ising Model")
+
+plt.plot(Temps,E_T,'.', label='Numerical Result')
+plt.plot(Temps, exactE_T,'--', label='Analytical Result')
+plt.title("Average Energy for 2-D Ising Model")
 #plt.xscale('log')
-plt.xlabel("Temperature")
-plt.ylabel("<E/N>")
+plt.xlabel("Temperature (J/k)")
+plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
+plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
+plt.ylabel("Average Energy per Spin")
 plt.legend()
-#plt.savefig(f'Figures/2D/2D-EnergyComparison.jpg')
-plt.show()
+if savefigs:
+    plt.savefig(f'Figures/Poster/2D/2D-Energy2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot Cv(T)/N
-plt.plot(Temps,Cv_T, label='Numerical Result')
-#plt.plot(Temps, exactCv_T, label='Analytical Result')
-plt.title("Cv(T) for 2-D Ising Model")
+
+#Analytical Solution:
+def analyticalCv(T):
+    k = (2*np.sinh(2*J/T))/(np.cosh(2*J/T))**2
+    K = sp.ellipk(k**2)
+    Ek = sp.ellipe(k**2)
+    return (4/np.pi)*(((J/T)/np.tanh(2*J/T))**2)*(K-Ek-(1-np.tanh(2*J/T)**2)*((np.pi/2)+(-1+2*np.tanh(2*J/T)**2)*K))
+exactCv_T = np.array([analyticalCv(T) for T in Temps])
+
+plt.plot(Temps,Cv_T,'.', label='Numerical Result')
+plt.plot(Temps, exactCv_T,'--', label='Analytical Result')
+plt.title("Specific Heat for 2-D Ising Model")
 #plt.xscale('log')
-plt.xlabel("Temperature")
-plt.ylabel("Cv/N")
-#plt.legend()
-#plt.savefig(f'Figures/1D/1D-EnergyComparison.jpg')
-plt.show()
+plt.xlabel("Temperature (J/k)")
+plt.ylabel("Specific Heat per Spin")
+plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
+plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
+plt.legend()
+if savefigs:
+    plt.savefig(f'Figures/Poster/2D/2D-Cv2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot <M>(T)
-plt.plot(Temps,M_T)
+
+#Analytical Solution:
+def analyticalM(T,Tc=Tc):
+    if T < Tc:
+        return (1-(1-np.tanh(J/T)**2)**4/(16*np.tanh(J/T)**4))**(1/8)
+    else:
+        return 0
+exactM_T = np.array([analyticalM(T) for T in Temps])
+
+plt.plot(Temps,M_T,'.',label='Numerical Result')
+plt.plot(Temps,exactM_T,'--',label='Analytical Result')
 #plt.xscale('log')
-plt.show()
+plt.title("Magnetization for 2-D Ising Model")
+plt.xlabel("Temperature (J/k)")
+plt.ylabel("Magnetization per Spin")
+plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
+plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
+if savefigs:
+    plt.savefig(f'Figures/Poster/2D/2D-Mag2.jpg')
+    plt.close()
+else:
+    plt.show()
 
 #Plot Spin Configurations
 for i_T in range(Nt):
@@ -121,7 +165,10 @@ for i_T in range(Nt):
     ax[1].set_yticks([]);   
     ax[1].xaxis.set_label_position('bottom')
     ax[1].set_xlabel('Final State',fontsize=16)
-    f.suptitle(f'T = {Temps[i_T]:.4f}',y=.85,fontsize=16)
+    f.suptitle(f'T = {Temps[i_T]:.2f}',y=.85,fontsize=16)
     plt.tight_layout()
-    #plt.savefig(f'Figures/2D/2D-spinconfigplots/2Dconfig{i_T+1}.jpg')
-    plt.show()
+    if savefigs:
+        plt.savefig(f'Figures/Poster/2D/2D-spinconfigs/2Dconfig{i_T+1}.jpg')
+        plt.close()
+    else:
+        plt.show()
