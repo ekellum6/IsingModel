@@ -6,15 +6,15 @@ from numba import jit,njit
 
 savefigs = False
 
+Tc = 1/0.221651 #Known Value (https://arxiv.org/pdf/2406.08531)
+
 L = 100 #number of lattice points in each dimension
 size = L*L*L #total number of lattice points
 J = 1.0  #Coupling Coefficient
-N = 5000 #number of monte-carlo steps for data collection
-Neq = 5000 #number of MCS for equilibration
+N = 1000 #number of monte-carlo steps for data collection
+Neq = 1000 #number of MCS for equilibration
 Nt = 100 #number of temperatures sampled
 Temps = np.linspace(1,7.93,Nt)
-
-Tc = 1/0.2212 #Known Value (https://journals.aps.org/pr/pdf/10.1103/PhysRev.162.480)
 
 #Data Collection
 M_t = np.zeros(N) #magnetization
@@ -124,9 +124,9 @@ else:
     plt.show()
 
 #Plot Spin Configuration Slices
-Tsamples = [25,50,75]
-for i in range(len(Tsamples)):
-    i_T = Tsamples[i]
+Tsample_indices = [25,50,75]
+for i in range(len(Tsample_indices)):
+    i_T = Tsample_indices[i]
     for zslice in range(L):
         plt.imshow(s_T[i_T][1][:,:,zslice],cmap='gray')
         plt.xticks([]);

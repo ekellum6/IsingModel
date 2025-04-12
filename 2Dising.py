@@ -6,15 +6,15 @@ from numba import jit,njit
 
 savefigs = False
 
+Tc = 2.269185 #Known Value (https://theory.tifr.res.in/~tridib/ReferenceMaterial/PlischkeBergersen_Sec.6.1.pdf)
+
 L = 100 #number of lattice points in each dimension
 size = L*L #total number of lattice points
 J = 1.0  #Coupling Coefficient
-N = 5000 #number of monte-carlo steps for data collection
-Neq = 5000 #number of MCS for equilibration
+N = 25000 #number of monte-carlo steps for data collection
+Neq = 25000 #number of MCS for equilibration
 Nt = 100 #number of temperatures sampled
 Temps = np.linspace(1,5.95,Nt)
-
-Tc = 2.269185 #Known Value (https://theory.tifr.res.in/~tridib/ReferenceMaterial/PlischkeBergersen_Sec.6.1.pdf)
 
 #Data Collection
 M_t = np.zeros(N) #magnetization
@@ -97,7 +97,7 @@ plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 plt.ylabel("Average Energy per Spin")
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Energy.jpg')
+    plt.savefig(f'Figures/Poster/2D_5x/2D-Energy.jpg')
     plt.close()
 else:
     plt.show()
@@ -122,7 +122,7 @@ plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 plt.legend()
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Cv.jpg')
+    plt.savefig(f'Figures/Poster/2D_5x/2D-Cv.jpg')
     plt.close()
 else:
     plt.show()
@@ -146,7 +146,7 @@ plt.ylabel("Magnetization per Spin")
 plt.xticks([1,2,Tc,3,4,5,6],[1,2,'Tc',3,4,5,6])
 plt.axvline(x=Tc, color='k', linestyle='--', linewidth=1)
 if savefigs:
-    plt.savefig(f'Figures/Poster/2D/2D-Mag.jpg')
+    plt.savefig(f'Figures/Poster/2D_5x/2D-Mag.jpg')
     plt.close()
 else:
     plt.show()
@@ -168,7 +168,7 @@ for i_T in range(Nt):
     f.suptitle(f'T = {Temps[i_T]:.2f}',y=.85,fontsize=16)
     plt.tight_layout()
     if savefigs:
-        plt.savefig(f'Figures/Poster/2D/2D-spinconfigs/2Dconfig{i_T+1}.jpg')
+        plt.savefig(f'Figures/Poster/2D_5x/2D-spinconfigs/2Dconfig{i_T+1}.jpg')
         plt.close()
     else:
         plt.show()
