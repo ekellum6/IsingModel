@@ -1,8 +1,8 @@
 import cupy as cp
 import numpy as np
+from collections import deque
 
-
-# ------------------ GPU-Accelerated Ising Model ------------------ #
+# ------------------ GPU-Accelerated Ising Model (Metropolis) ------------------ #
 class GPUIsingModelOptimized:
     def __init__(self, L, dim=3, T=2.0, J=1.0, seed=None):
         """
@@ -106,7 +106,7 @@ class GPUIsingModelOptimized:
         return energies_gpu.get(), magnetizations_gpu.get()
 
 
-# ------------------ CPU Ising Model ------------------ #
+# ------------------ CPU Ising Model (Metropolis) ------------------ #
 class IsingModel:
     def __init__(self, L, dim=2, T=2.0, J=1.0, seed=None):
         """
@@ -197,3 +197,88 @@ class IsingModel:
         return np.array(energies), np.array(magnetizations)
 
 
+# ------------------ CPU Ising Model (Wolff) ------------------ #
+class WolffIsingModel:
+    r"""
+    Ising model with Wolff single–cluster updates.
+
+    Public interface:
+        • total_energy()
+        • total_magnetization()
+        • wolff_step() ⟶ one cluster flip
+        • run(n_steps, equilibration_steps=0)
+    """
+
+    def __init__(self, L, dim=2, T=2.0, J=1.0, seed=None):
+        self.L     = L
+        self.dim   = dim
+        self.T     = T
+        self.J     = J
+        self.beta  = 1.0 / T
+        self.shape = (L,) * dim
+
+        if seed is not None:
+            np.random.seed(seed)
+
+        # random ±1 spins
+        self.lattice = np.random.choice([-1, 1], size=self.shape)
+
+        # bond-formation probability  p = 1 - exp(-2βJ)
+        self.p_add = 1.0 - np.exp(-2.0 * self.beta * self.J)
+
+    def total_energy(self):
+        E = 0
+        for ax in range(self.dim):
+            E += np.sum(self.lattice * np.roll(self.lattice, -1, axis=ax))
+        return -self.J * E
+
+    def total_magnetization(self):
+        return np.sum(self.lattice)
+
+    def _neighbors(self, site):
+        """Generator yielding nearest-neighbour indices (periodic BC)."""
+        for ax in range(self.dim):
+            plus  = list(site); plus[ax]  = (plus[ax] + 1) % self.L
+            minus = list(site); minus[ax] = (minus[ax] - 1) % self.L
+            yield tuple(plus)
+            yield tuple(minus)
+
+    def wolff_step(self):
+        """
+        Build one cluster starting from a random seed site, then
+        flip the entire cluster.  One call = one Monte-Carlo sweep.
+        """
+        seed_site = tuple(np.random.randint(0, self.L, size=self.dim))
+        seed_spin = self.lattice[seed_site]
+
+        # Breadth-first growth using a deque (≈ queue)
+        cluster = set([seed_site])
+        frontier = deque([seed_site])
+
+        while frontier:
+            site = frontier.popleft()
+            for nbr in self._neighbors(site):
+                if nbr in cluster:
+                    continue
+                if self.lattice[nbr] == seed_spin and np.random.rand() < self.p_add:
+                    cluster.add(nbr)
+                    frontier.append(nbr)
+
+        # Flip the whole cluster
+        for site in cluster:
+            self.lattice[site] *= -1
+
+    def run(self, n_steps, equilibration_steps=0):
+        """
+        Perform `equilibration_steps` cluster flips (discarded),
+        then record energy & magnetisation after each of the next `n_steps`.
+        """
+        for _ in range(equilibration_steps):
+            self.wolff_step()
+
+        energies, mags = np.empty(n_steps), np.empty(n_steps)
+        for i in range(n_steps):
+            self.wolff_step()
+            energies[i] = self.total_energy()
+            mags[i]     = self.total_magnetization()
+        return energies, mags
