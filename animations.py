@@ -120,16 +120,17 @@ def interactive_viewer(frames, L):
     plotter.show()
 
 
-# Example usage:
 def run_animate_ising_3d():
     # Create a 3D Ising model instance. For example, L=32, T=4.5 (near criticality).
-    model = isingModel.GPUIsingModelOptimized(L=64, dim=3, T=2.0, J=1.0, seed=42)
-    # Record the animation frames.
-    frames = record_ising_animation(model, steps_per_frame=10, n_frames=100)
-    # Save the frames to disk for later reuse.
-    save_animation_frames(frames, filename="ising_animation.pkl")
+    # model = isingModel.GPUIsingModelOptimized(L=100, dim=3, T=2.0, J=1.0, seed=42)
+    # frames = record_ising_animation(model, steps_per_frame=10, n_frames=100)
+    # save_animation_frames(frames, filename="ising_animation.pkl")
+
+
+
     # Later, you can load them:
-    loaded_frames = load_animation_frames("ising_animation.pkl")
+    # loaded_frames = load_animation_frames("ising_animation_2.pkl")
+    loaded_frames = load_animation_frames("ising_animation_2.pkl")
     # Launch the interactive viewer with a time slider.
     # interactive_viewer(loaded_frames, L=64)
-    interactive_viewer(loaded_frames, L=64)
+    interactive_viewer(loaded_frames, L=100)
